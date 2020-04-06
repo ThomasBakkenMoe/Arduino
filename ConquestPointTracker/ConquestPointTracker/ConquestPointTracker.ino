@@ -3,18 +3,73 @@
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-static struct pt pt1;
+static struct pt pt1, pt2;
 
 int pointCap = 250; // How many points it takes to win
 
 int team1Points = 0;
 int team2Points = 0;
 
-int tickRate = 100; // How quickly the selected team aquires points
+int tickRate = 1000; // How quickly (ms) the selected team aquires points
 
-short selectedTeam = 0; // 1 = team 1, 2 = team 2
+int blinkArrowRate = 250; // How quickly (ms) the selected team's arrow blinks
 
-static int protothreadPointCounter
+short selectedTeam = 1; // 1 = team 1, 2 = team 2
+
+static int protothreadArrowHandler(struct pt *pt){
+  
+  static unsigned long lastTimeBlink = 0;
+  static short blinkPosition = 0;
+  
+  PT_BEGIN(pt);
+  while(true){
+    lastTimeBlink = millis();
+    PT_WAIT_UNTIL(pt, millis() - lastTimeBlink > blinkArrowRate);
+    switch(blinkPosition){
+      
+      case 0:
+      lcd.setCursor(9, 0);
+      lcd.print(" ->");
+      blinkPosition++;
+      break;
+      
+      case 1:
+      lcd.setCursor(9, 0);
+      lcd.print("- >");
+      blinkPosition++;
+      break;
+      
+      case 2:
+      lcd.setCursor(9, 0);
+      lcd.print("-- ");
+      blinkPosition = 0;
+      break;
+    }
+  }
+  PT_END(pt);
+}
+
+static int protothreadPointCounter(struct pt *pt){
+  
+  static unsigned long lastTimeTick = 0;
+  
+  PT_BEGIN(pt);
+  while(true){
+    lastTimeTick = millis();
+    PT_WAIT_UNTIL(pt, millis() - lastTimeTick > tickRate);
+    
+    if(selectedTeam == 1){
+      team1Points++;
+      lcd.setCursor(13, 0);
+      lcd.print(team1Points);
+    }else{
+      team2Points++;
+      lcd.setCursor(13, 1);
+      lcd.print(team2Points);
+    }
+  }
+  PT_END(pt);
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -28,5 +83,6 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
+  protothreadPointCounter(&pt1);
+  protothreadArrowHandler(&pt2);
 }
