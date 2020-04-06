@@ -3,13 +3,18 @@
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-int pointCap = 250;
+static struct pt pt1;
+
+int pointCap = 250; // How many points it takes to win
 
 int team1Points = 0;
 int team2Points = 0;
 
+int tickRate = 100; // How quickly the selected team aquires points
+
 short selectedTeam = 0; // 1 = team 1, 2 = team 2
 
+static int protothreadPointCounter
 
 void setup() {
   // put your setup code here, to run once:
